@@ -29,7 +29,7 @@ public class LoanCalc {
 	// interest rate (as a percentage), the number of periods (n), and the periodical payment.
 	private static double endBalance(double loan, double rate, int n, double payment) {	
 		for (int i = 0; i < n; i++) {
-			loan= (loan-payment)*rate;
+			loan= (loan - payment)* (rate + 1);
 		}
 		return loan;
 	}
@@ -40,13 +40,15 @@ public class LoanCalc {
 	// the number of periods (n), and epsilon, the approximation's accuracy
 	// Side effect: modifies the class variable iterationCounter.
     public static double bruteForceSolver(double loan, double rate, int n, double epsilon) {
-		double payment=0;
-		double increment = 0.0001;
-		while (endBalance(loan, rate, n, payment)>(0+epsilon)) { 
-			payment+=increment;
+		double g = loan/n;
+		double newRate = rate / 100;
+		double x = endBalance(loan, newRate, n, g);
+		while(((g * g - x) >= epsilon) && (x >= 0)) { 
+			g+=epsilon;
+			x = endBalance(loan, newRate, n, g);
 			iterationCounter++;
 		}
-		return payment;
+		return g;
     }
     
     // Uses bisection search to compute an approximation of the periodical payment 
@@ -55,7 +57,30 @@ public class LoanCalc {
 	// the number of periods (n), and epsilon, the approximation's accuracy
 	// Side effect: modifies the class variable iterationCounter.
     public static double bisectionSolver(double loan, double rate, int n, double epsilon) {  
-        // Replace the following statement with your code
-		return 0;
-    }
+        iterationCounter = 0;
+		double newRate = rate / 100;
+		double H = loan;
+		double L = loan / n;
+		double g = (L + H) / 2;
+		while (H - L > epsilon) {
+			// Sets L and H for the next iteration
+			if (endBalance(loan, newRate, n, g) * endBalance(loan, newRate, n, L) > 0)
+			{
+				L = g;
+				iterationCounter++;
+			}
+			// the solution must be between g and H
+			// so set L or H accordingly
+			else {
+				H = g;
+				iterationCounter++;
+			}
+			g = (L + H) / 2;
+			// the solution must be between L and g
+			// so set L or H accordingly
+			// Computes the mid-value (g) for the next iteration
+		}
+			return g;
+
+	}
 }
